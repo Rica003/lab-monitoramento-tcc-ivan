@@ -21,17 +21,23 @@ services:
     container_name: prometheus
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      # ALTERAÇÃO: Adicionado volume nomeado para manter o histórico de métricas do Prometheus
+      - prometheus-data:/prometheus
     ports:
       - "9090:9090"
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
+    privileged: true
+    devices:
+      - /dev/kmsg
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
     ports:
       - "8080:8080"
 
@@ -42,3 +48,26 @@ services:
       - "3001:3000"
     depends_on:
       - prometheus
+    # ALTERAÇÃO: Adicionada a secção de volumes para salvar credenciais e dashboards do Grafana
+    volumes:
+      - grafana-data:/var/lib/grafana
+  
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+    ports:
+      - "9100:9100"
+
+# ALTERAÇÃO: Declaração global dos volumes no final do ficheiro para que o Docker os crie
+volumes:
+  prometheus-data:
+  grafana-data:
