@@ -1,0 +1,308 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Deputado {
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  idCamara            Int      @unique // We'll map the API's 'id' to idCamara
+  uri                 String
+  nome                String
+  siglaPartido        String
+  uriPartido          String
+  siglaUf             String
+  idLegislatura       Int
+  urlFoto             String
+  email               String?
+  
+  // Status simples
+  condicaoEleitoral   String?
+  situacao            String?
+
+  // Dados civis e detalhados
+  nomeCivil           String?
+  cpf                 String?
+  sexo                String?
+  urlWebsite          String?
+  redeSocial          String[]
+  dataNascimento      String?
+  dataFalecimento     String?
+  ufNascimento        String?
+  municipioNascimento String?
+  escolaridade        String?
+
+  // Objeto completo aninhado do último status
+  ultimoStatus        Json?
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Partido {
+  id             String @id @default(auto()) @map("_id") @db.ObjectId
+  idCamara       Int    @unique
+  sigla          String
+  nome           String
+  uri            String
+  
+  status         Json?  // Store nested situation/lider status safely
+  numeroEleitoral Int?
+  urlLogo        String?
+  urlWebSite     String?
+  urlFacebook    String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Legislatura {
+  id             String @id @default(auto()) @map("_id") @db.ObjectId
+  idCamara       Int    @unique
+  uri            String
+  dataInicio     DateTime?
+  dataFim        DateTime?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Proposicao {
+  id             String @id @default(auto()) @map("_id") @db.ObjectId
+  idCamara       Int    @unique
+  uri            String
+  siglaTipo      String
+  codTipo        Int?
+  numero         Int
+  ano            Int
+  ementa         String
+  autores        Json?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Votacao {
+  id             String @id @default(auto()) @map("_id") @db.ObjectId
+  idCamara       String @unique
+  uri            String
+  data           String?
+  dataHoraRegistro String?
+  siglaOrgao     String?
+  uriOrgao       String?
+  uriEvento      String?
+  proposicaoObjeto String?
+  uriProposicaoObjeto String?
+  idProposicaoObjeto  Int?
+  descricao      String?
+  aprovacao      Int?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([idProposicaoObjeto])
+}
+
+model Orgao {
+  id             String @id @default(auto()) @map("_id") @db.ObjectId
+  idCamara       Int    @unique
+  uri            String
+  sigla          String
+  nome           String
+  apelido        String?
+  codTipoOrgao   Int?
+  tipoOrgao      String?
+  nomePublicacao String?
+  nomeResumido   String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Bloco {
+  id             String @id @default(auto()) @map("_id") @db.ObjectId
+  idCamara       Int    @unique
+  uri            String
+  nome           String
+  idLegislatura  Int?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Frente {
+  id             String @id @default(auto()) @map("_id") @db.ObjectId
+  idCamara       Int    @unique
+  uri            String
+  titulo         String
+  idLegislatura  Int?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Grupo {
+  id             String @id @default(auto()) @map("_id") @db.ObjectId
+  idCamara       Int    @unique
+  uri            String
+  nome           String
+  idLegislatura  Int?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Evento {
+  id             String @id @default(auto()) @map("_id") @db.ObjectId
+  idCamara       Int    @unique
+  uri            String
+  dataHoraInicio String?
+  dataHoraFim    String?
+  situacao       String?
+  descricaoTipo  String?
+  descricao      String?
+  localExterno   String?
+  localCamara    Json?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Referencia {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  tipo      String   @unique // ex: "deputados/siglaUf"
+  dados     Json
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Discurso {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  idCamaraDeputado Int
+  dataHoraInicio   DateTime
+  dataHoraFim      DateTime?
+  uriEvento        String?
+  faseEvento       String?
+  tipoDiscurso     String?
+  titulo           String?
+  keywords         String?
+  sumario          String?
+  transcricao      String?
+  
+  // Unique composite field to avoid duplicates during sync
+  slug             String   @unique // idCamaraDeputado_dataHoraInicio_titulo(hash)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([idCamaraDeputado])
+}
+
+model Despesa {
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  idCamaraDeputado    Int      // Id of the deputy this expense belongs to
+  ano                 Int
+  mes                 Int
+  tipoDespesa         String
+  codDocumento        String?
+  tipoDocumento       String
+  codTipoDocumento    Int
+  dataDocumento       String?
+  numDocumento        String?
+  valorDocumento      Float
+  urlDocumento        String?
+  nomeFornecedor      String
+  cnpjCpfFornecedor   String?
+  valorLiquido        Float
+  valorGlosa          Float
+  numRessarcimento    String?
+  codLote             Int?
+  parcela             Int?
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([idCamaraDeputado])
+  @@index([idCamaraDeputado, ano])
+}
+
+model VotoIndividual {
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  idCamaraVotacao     String   // Id of the voting (Votacao.idCamara)
+  idCamaraDeputado    Int      // Id of the deputy (Deputado.idCamara)
+  nomeDeputado        String
+  siglaPartido        String
+  siglaUf             String
+  idLegislatura       Int
+  voto                String
+  dataHoraRegistro    String?
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([idCamaraVotacao])
+  @@index([idCamaraDeputado])
+}
+
+model Orientacao {
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  idCamaraVotacao     String   // Id of the voting (Votacao.idCamara)
+  codOrgao            Int?
+  siglaOrgao          String?
+  uriOrgao            String?
+  codPartido          Int?
+  siglaPartido        String?
+  uriPartido          String?
+  orientacaoVoto      String
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([idCamaraVotacao])
+}
+
+model DeputadoEstadual {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  idDeputado      Int      @unique // ID oficial da ALESP (ex: 1139)
+  idSPL           String
+  idUA            Int
+  matricula       Int      @unique // Matrícula oficial da ALESP (ex: 300607)
+  situacao        String
+  andar           String?
+  aniversario     String?
+  nome            String
+  siglaPartido    String
+  biografia       String?
+  email           String?
+  telefone        String?
+  sala            String?
+  urlFoto         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([siglaPartido])
+}
+
+model DespesaEstadual {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  idDeputado        Int      // Relacionado ao idDeputado oficial da ALESP
+  ano               Int
+  mes               Int
+  tipoDespesa       String
+  cnpjCpfFornecedor String?
+  nomeFornecedor    String?
+  valor             Float
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([idDeputado, ano, mes, tipoDespesa, cnpjCpfFornecedor, valor])
+  @@index([idDeputado, ano])
+}
