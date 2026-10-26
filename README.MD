@@ -26,7 +26,7 @@ O ambiente sobe os seguintes serviços interligados:
 
 docker compose -f docker-compose.dev.yml up
 
-2. Teste prático de carga (Geração de pico de CPU para o Grafana/cAdvisor):
-O comando abaixo baixa uma imagem leve do Alpine, instala o pacote stress-ng e força o uso de 13 núcleos de CPU durante 60 segundos. O contêiner se auto-destrói (--rm) ao finalizar.
+**2. Teste prático de carga (Geração de pico de CPU para o Grafana/cAdvisor):
+O comando abaixo baixa uma imagem leve do Alpine, instala o pacote stress-ng e força o uso de 13 núcleos de CPU durante 60 segundos. O contêiner se auto-destrói (--rm) ao finalizar.**
 
 docker run --rm alpine sh -c "apk add --no-cache stress-ng && stress-ng --cpu 13 --timeout 60s"
