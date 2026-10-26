@@ -23,8 +23,8 @@ O ambiente sobe os seguintes serviços interligados:
 ## Comandos Utilizados
 
 **1. Subir a infraestrutura de monitoramento (em segundo plano):**
-
-docker compose -f docker-compose.dev.yml u
+```bash
+docker compose -f docker-compose.dev.yml up
 
 2. Teste prático de carga (Geração de pico de CPU para o Grafana/cAdvisor):
 O comando abaixo baixa uma imagem leve do Alpine, instala o pacote stress-ng e força o uso de 13 núcleos de CPU durante 60 segundos. O contêiner se auto-destrói (--rm) ao finalizar.
