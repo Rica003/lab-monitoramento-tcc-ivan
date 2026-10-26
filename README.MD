@@ -4,10 +4,10 @@ Este repositório contém a configuração prática do ambiente de monitoramento
 
 ## Especificações do Ambiente
 
-* **IP da Máquina:** `localhost` (ou insira o seu IP local de rede, ex: `192.168.x.x`)
+* **IP da Máquina:** `localhost`
 * **Sistema Operacional:** Ubuntu (executado via WSL2 no Windows)
-* **Versão do Prometheus:** `latest` (A imagem puxa a versão estável mais recente, atualmente na casa da v2.5x)
-* **Versão do Grafana:** `latest` (A imagem puxa a versão estável mais recente, atualmente na casa da v11.x)
+* **Versão do Prometheus:** `latest` (A imagem puxa a versão estável mais recente, atualmente é a v3.15.1)
+* **Versão do Grafana:** `latest` (A imagem puxa a versão estável mais recente, atualmente é a v13.2.4)
 * **Motor de Contêineres:** Docker Desktop com Docker Compose
 
 ## Serviços Configurados
@@ -24,4 +24,9 @@ O ambiente sobe os seguintes serviços interligados:
 
 **1. Subir a infraestrutura de monitoramento (em segundo plano):**
 ```bash
-docker compose up -d
+docker compose -f docker-compose.dev.yml u
+
+2. Teste prático de carga (Geração de pico de CPU para o Grafana/cAdvisor):
+O comando abaixo baixa uma imagem leve do Alpine, instala o pacote stress-ng e força o uso de 13 núcleos de CPU durante 60 segundos. O contêiner se auto-destrói (--rm) ao finalizar.
+```bash
+docker run --rm alpine sh -c "apk add --no-cache stress-ng && stress-ng --cpu 13 --timeout 60s"
